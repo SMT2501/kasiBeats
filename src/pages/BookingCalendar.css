@@ -1,0 +1,112 @@
+.booking-calendar {
+    padding: 40px 20px;
+    background: #1a1a1a; /* Dark background */
+    color: #ffffff; /* White text */
+    min-height: 100vh;
+  }
+  
+  .calendar-heading {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 40px;
+    background: linear-gradient(45deg, #00f7ff, #ff00ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .no-events-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #ddd; /* Light gray text */
+  }
+  
+  /* Custom styles for react-big-calendar */
+  .custom-calendar {
+    background: #2a2a2a; /* Slightly lighter dark for calendar background */
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .custom-calendar .rbc-toolbar {
+    background: #242424; /* Darker background for toolbar */
+    border-bottom: 1px solid #444;
+    margin-bottom: 16px;
+  }
+  
+  .custom-calendar .rbc-toolbar-label {
+    color: #00f7ff; /* Neon cyan for toolbar label */
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .custom-calendar .rbc-btn-group button {
+    background: linear-gradient(45deg, #00f7ff, #ff00ff);
+    color: #000000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .custom-calendar .rbc-btn-group button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+  }
+  
+  .custom-calendar .rbc-month-view {
+    background: #2a2a2a; /* Match calendar background */
+  }
+  
+  .custom-calendar .rbc-header {
+    background: #242424;
+    color: #ddd; /* Light gray for day headers */
+    padding: 8px;
+    border-bottom: 1px solid #444;
+  }
+  
+  .custom-calendar .rbc-day-bg {
+    background: #2a2a2a;
+    border: 1px solid #444;
+  }
+  
+  .custom-calendar .rbc-today {
+    background: #333; /* Slightly lighter for today */
+  }
+  
+  .custom-calendar .rbc-event {
+    background: linear-gradient(45deg, #ff00ff, #00f7ff); /* Neon gradient for events */
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    color: #000000; /* Black text for contrast */
+    font-weight: bold;
+  }
+  
+  .custom-calendar .rbc-event:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+  }
+  
+  .custom-calendar .rbc-event-label {
+    color: #000000;
+  }
+  
+  .custom-calendar .rbc-month-row {
+    border-top: 1px solid #444;
+  }
+  
+  .custom-calendar .rbc-date-cell {
+    color: #ddd; /* Light gray for dates */
+  }
+  
+  .custom-calendar .rbc-off-range {
+    background: #1a1a1a;
+    color: #888; /* Darker gray for off-range dates */
+  }
+  
+  .custom-calendar .rbc-off-range-bg {
+    background: #1a1a1a;
+  }

@@ -1,0 +1,106 @@
+.djs-container {
+    padding: 40px 20px;
+    background: #1a1a1a; /* Dark background */
+    color: #ffffff; /* White text */
+    min-height: 100vh;
+  }
+  
+  .djs-container h2 {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 40px;
+    /* Neon gradient already applied globally */
+  }
+  
+  /* Search Container */
+  .search-container {
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto 24px auto;
+  }
+  
+  /* Search Bar Styles */
+  .search-bar {
+    width: 100%;
+    padding: 10px 40px 10px 40px; /* Add padding for icons */
+    border: 2px solid #00f7ff; /* Neon cyan border */
+    border-radius: 20px;
+    background: #333; /* Dark input background */
+    color: #ffffff; /* White text */
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .search-bar:focus {
+    border-color: #ff00ff; /* Neon magenta on focus */
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+  }
+  
+  .search-bar::placeholder {
+    color: #888; /* Light gray placeholder text */
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: #00f7ff; /* Neon cyan icon */
+  }
+  
+  .clear-search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: 1px solid #ff00ff; /* Neon magenta border */
+    color: #ff00ff; /* Neon magenta text */
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .clear-search-btn:hover {
+    background: rgba(255, 0, 255, 0.1);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+  }
+  
+  
+    
+    .dj-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    
+    .dj-card {
+      border: 1px solid #ddd;
+      background: #2a2a2a;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      width: 200px;
+      text-align: center;
+    }
+    
+    .dj-card img.dj-picture {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+    
+    .dj-card h3 {
+      margin-bottom: 10px;
+    }
+    
+    .dj-card p {
+      color: #666;
+      font-size: 14px;
+    }

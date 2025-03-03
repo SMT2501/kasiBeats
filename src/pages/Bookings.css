@@ -1,0 +1,85 @@
+.bookings {
+  padding: 40px 20px;
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+  min-height: 100vh;
+}
+
+.dj-bookings,
+.organizer-bookings {
+  margin-bottom: 40px;
+}
+
+.dj-bookings h2,
+.organizer-bookings h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 24px;
+  /* Neon gradient already applied globally */
+}
+
+.booking-card,
+.event-card {
+  background: #2a2a2a; /* Slightly lighter dark for cards */
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.booking-card h3,
+.event-card h3 {
+  font-size: 1.5rem;
+  color: #ff00ff; /* Neon magenta for card titles */
+  margin-bottom: 8px;
+}
+
+.booking-card p,
+.event-card p {
+  font-size: 1rem;
+  color: #ddd; /* Light gray text */
+  margin: 4px 0;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.accept {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+}
+
+.reject {
+  background: linear-gradient(45deg, #ff00ff, #ff5555);
+  color: #000000;
+}
+
+/* Button hover effects are already defined globally */
+
+.organizer-bookings form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.organizer-bookings label {
+  font-weight: bold;
+  color: #ddd; /* Light gray text */
+}
+
+.organizer-bookings select {
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333; /* Dark input background */
+  color: #fff; /* White text */
+  font-size: 1rem;
+}
+
+/* Button styles are already defined globally */

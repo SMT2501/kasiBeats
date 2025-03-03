@@ -1,0 +1,122 @@
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #1c1542;
+    color: #fff;
+    width: 100%;
+    position: relative;
+    z-index: 1000; /* Keeps header above other elements */
+    box-sizing: border-box; /* Prevents overflow issues */
+}
+
+/* Logo */
+header .logo {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    object-fit: cover;
+}
+
+/* Navigation Menu */
+.nav-menu {
+    display: flex;
+    align-items: center;
+}
+
+/* Menu Items */
+.nav-menu ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu ul li {
+    margin: 0 10px; /* Ensures even spacing */
+}
+
+.nav-menu ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.nav-menu ul li a:hover {
+    background-color: #555;
+}
+
+/* Buttons */
+.nav-menu ul li .btn {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.nav-menu ul li .btn:hover {
+    background-color: #0056b3;
+}
+
+/* Profile Picture */
+.nav-menu ul li .profile-picture-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Mobile Menu Button */
+.menu-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    display: none;
+    margin-left: auto; /* Pushes it away from logo */
+    margin-right: 10px; /* Gives space on the right */
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background-color: #333;
+        border-radius: 0 0 8px 8px;
+        padding: 10px 0;
+        z-index: 999; /* Keeps menu above content */
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .nav-menu ul {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 0;
+    }
+
+    .nav-menu ul li {
+        width: 100%;
+        text-align: center;
+        padding: 10px 0;
+        margin: 0; /* Ensures no extra space issues */
+    }
+
+    .menu-button {
+        display: block;
+    }
+}

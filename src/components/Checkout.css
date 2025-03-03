@@ -1,0 +1,51 @@
+.checkout {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+  min-height: 100vh;
+}
+
+.checkout h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 24px;
+  /* Neon gradient already applied globally */
+}
+
+.ticket-confirmation {
+  background: #2a2a2a; /* Slightly lighter dark for cards */
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.ticket-confirmation h3 {
+  font-size: 1.8rem;
+  color: #00f7ff; /* Neon cyan for subheadings */
+  margin-bottom: 16px;
+}
+
+.ticket-confirmation p {
+  font-size: 1.2rem;
+  color: #ddd; /* Light gray text */
+  margin-bottom: 16px;
+}
+
+.event-details {
+  margin-top: 16px;
+}
+
+.event-details h4 {
+  font-size: 1.5rem;
+  color: #ff00ff; /* Neon magenta for event title */
+  margin-bottom: 8px;
+}
+
+.event-details p {
+  font-size: 1rem;
+  color: #ddd; /* Light gray text */
+}
+
+/* Error message styles are already defined globally */

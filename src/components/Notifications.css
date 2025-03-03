@@ -1,0 +1,34 @@
+.notifications {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+  min-height: 100vh;
+}
+
+.notifications h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 24px;
+  /* Neon gradient already applied globally */
+}
+
+.notification-card {
+  border: 1px solid #444; /* Darker border */
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #2a2a2a; /* Slightly lighter dark for cards */
+}
+
+.notification-card p {
+  margin: 8px 0;
+  font-size: 1rem;
+  color: #ddd; /* Light gray text */
+}
+
+.notification-card p:last-child {
+  color: #888; /* Slightly darker gray for timestamp */
+  font-size: 0.9rem;
+}

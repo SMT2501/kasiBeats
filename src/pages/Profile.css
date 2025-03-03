@@ -1,0 +1,110 @@
+.profile {
+  padding: 40px 20px;
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+  min-height: 100vh;
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.profile-picture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+
+.profile-header h2 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  /* Neon gradient already applied globally */
+}
+
+.profile-header p {
+  font-size: 1rem;
+  color: #ddd; /* Light gray text */
+  margin: 4px 0;
+}
+
+/* Button styles are already defined globally */
+
+.dj-bookings,
+.user-posts,
+.organizer-events {
+  margin-bottom: 40px;
+}
+
+.dj-bookings h3,
+.user-posts h3,
+.organizer-events h3 {
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+  color: #00f7ff; /* Neon cyan for subheadings */
+}
+
+.booking-card,
+.post-card,
+.event-card {
+  background: #2a2a2a; /* Slightly lighter dark for cards */
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.booking-card h4,
+.post-card h4,
+.event-card h4 {
+  font-size: 1.5rem;
+  color: #ff00ff; /* Neon magenta for card titles */
+  margin-bottom: 8px;
+}
+
+.booking-card p,
+.post-card p,
+.event-card p {
+  font-size: 1rem;
+  color: #ddd; /* Light gray text */
+  margin: 4px 0;
+}
+
+.post-media,
+.event-media {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.posts-header,
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.fab {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 247, 255, 0.5);
+}
