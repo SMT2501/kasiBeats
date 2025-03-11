@@ -1,8 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { auth, firestore } from '../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 import './Header.css';
 import logo from '../../assets/images/GNB.png';
 import defaultProfilePicture from '../../assets/images/profile.jpg';
@@ -11,26 +12,42 @@ const Header = () => {
   const { currentUser } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profilePicture, setProfilePicture] = useState(defaultProfilePicture);
+  const [role, setRole] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProfilePicture = async () => {
+    const fetchUserData = async () => {
       if (currentUser) {
+        console.log('Fetching user data for:', currentUser.uid); // Debug
         try {
           const userRef = doc(firestore, 'users', currentUser.uid);
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
             const data = userDoc.data();
-            setProfilePicture(data.profilePicture || defaultProfilePicture);
+            console.log('User data fetched:', data); // Debug
+            if (data.profilePicture && isValidUrl(data.profilePicture)) {
+              setProfilePicture(data.profilePicture);
+            } else {
+              setProfilePicture(defaultProfilePicture);
+            }
+            setRole(data.role);
+          } else {
+            console.log('User document not found for UID:', currentUser.uid); // Debug
+            toast.error('User profile not found.');
           }
         } catch (error) {
-          console.error('Error fetching profile picture:', error);
+          console.error('Error fetching user data:', error); // Debug
+          toast.error('Failed to load user data: ' + error.message);
         }
+      } else {
+        console.log('No current user detected.'); // Debug
       }
     };
 
-    fetchProfilePicture();
+    fetchUserData();
+  }, [currentUser]);
 
+  useEffect(() => {
     const handleOutsideClick = (event) => {
       if (menuOpen && !event.target.closest('.nav-menu') && !event.target.closest('.menu-button')) {
         setMenuOpen(false);
@@ -39,30 +56,42 @@ const Header = () => {
 
     document.addEventListener('click', handleOutsideClick);
     return () => document.removeEventListener('click', handleOutsideClick);
-  }, [menuOpen, currentUser]);
+  }, [menuOpen]);
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const toggleMenu = useCallback(() => {
+    setMenuOpen((prevMenuOpen) => !prevMenuOpen);
+  }, []);
 
-  const closeMenu = () => {
+  const closeMenu = useCallback(() => {
     setMenuOpen(false);
-  };
+  }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
+      console.log('Attempting to log out...'); // Debug
       await auth.signOut();
       navigate('/');
       closeMenu();
+      toast.success('Logged out successfully!');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error logging out:', error); // Debug
+      toast.error('Failed to log out: ' + error.message);
+    }
+  }, [navigate, closeMenu]);
+
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (_) {
+      return false;
     }
   };
 
   return (
     <header>
       <Link to="/">
-        <img src={logo} alt="Ghost Nation" className="logo" />
+        <img src={logo} alt="KasiBeats Logo" className="logo" />
       </Link>
 
       <nav className={`nav-menu ${menuOpen ? 'active' : ''}`}>
@@ -71,11 +100,11 @@ const Header = () => {
           <li><Link to="/events" onClick={closeMenu}>Events</Link></li>
           {currentUser && (
             <>
-              {currentUser.role === 'dj' && (
-                <li><Link to="/bookings" onClick={closeMenu}>Bookings</Link></li>
+              {role === 'dj' && (
+                <li><Link to="/my-bookings" onClick={closeMenu}>My Bookings</Link></li>
               )}
-              {currentUser.role === 'organizer' && (
-                <li><Link to="/bookings" onClick={closeMenu}>Events with DJs</Link></li>
+              {role === 'organizer' && (
+                <li><Link to="/my-events" onClick={closeMenu}>My Events</Link></li>
               )}
               <li><Link to="/notifications" onClick={closeMenu}>Notifications</Link></li>
               <li>

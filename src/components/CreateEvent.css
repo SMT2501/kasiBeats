@@ -1,40 +1,124 @@
 .create-event {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 24px;
-    background: #1a1a1a; /* Dark background */
-    color: #ffffff; /* White text */
-    min-height: 100vh;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #1a1a1a; /* Dark background */
+  color: #ffffff; /* White text */
+  min-height: 100vh;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); /* Neon glow effect */
+  border-radius: 8px;
+}
+
+.create-event h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 24px;
+  /* Assuming neon gradient is applied globally, e.g., text-shadow: 0 0 10px #00ffff; */
+  color: #00ffff; /* Cyan neon color */
+}
+
+.create-event form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section {
+  background: #222; /* Slightly lighter section background */
+  padding: 16px;
+  border-radius: 4px;
+  border-left: 4px solid #00ffff; /* Neon accent */
+}
+
+.form-section h3 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  color: #00ffcc; /* Lighter neon shade */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.create-event label {
+  font-weight: bold;
+  color: #ddd; /* Light gray text */
+  margin-bottom: 4px;
+  display: block;
+}
+
+.create-event input,
+.create-event textarea {
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333; /* Dark input background */
+  color: #fff; /* White text */
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.create-event input:focus,
+.create-event textarea:focus {
+  border-color: #00ffff; /* Neon focus effect */
+  outline: none;
+}
+
+.create-event button.btn {
+  background-color: #00ffff; /* Neon button color */
+  color: #1a1a1a; /* Dark text for contrast */
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.create-event button.btn:hover {
+  background-color: #00cccc; /* Lighter neon on hover */
+}
+
+.create-event button.btn:disabled {
+  background-color: #666; /* Disabled state */
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #ff4d4d; /* Red error text */
+  margin-bottom: 10px;
+  padding: 8px;
+  background: #2a0000; /* Dark red background */
+  border-radius: 4px;
+}
+
+.profile-picture-preview {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 4px;
+  margin-top: 8px;
+  object-fit: cover;
+  border: 2px solid #00ffff; /* Neon border */
+}
+
+/* Optional: Add media query for responsiveness */
+@media (max-width: 600px) {
+  .create-event {
+    padding: 16px;
+    width: 90%;
   }
-  
+
   .create-event h2 {
-    font-size: 2.5rem;
-    text-align: center;
-    margin-bottom: 24px;
-    /* Neon gradient already applied globally */
+    font-size: 2rem;
   }
-  
-  .create-event form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+
+  .form-section h3 {
+    font-size: 1.2rem;
   }
-  
-  .create-event label {
-    font-weight: bold;
-    color: #ddd; /* Light gray text */
-  }
-  
-  .create-event input,
-  .create-event textarea {
-    padding: 8px;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background: #333; /* Dark input background */
-    color: #fff; /* White text */
+
+  .create-event button.btn {
+    padding: 10px 20px;
     font-size: 1rem;
   }
-  
-  /* Button styles are already defined globally */
-  
-  /* Error message styles are already defined globally */
+}

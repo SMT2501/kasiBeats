@@ -14,8 +14,9 @@ const DJCard = ({ dj }) => {
   const [selectedEventId, setSelectedEventId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [paymentTerms, setPaymentTerms] = useState('full');
+  const [customerService, setCustomerService] = useState(false);
 
-  // Fetch organizer's events when the modal opens
   useEffect(() => {
     if (showModal && currentUser?.role === 'organizer') {
       const fetchEvents = async () => {
@@ -32,26 +33,23 @@ const DJCard = ({ dj }) => {
           }));
           setEvents(eventsData);
           if (eventsData.length > 0) {
-            setSelectedEventId(eventsData[0].id); // Pre-select the first event
+            setSelectedEventId(eventsData[0].id);
           }
           setLoading(false);
         } catch (err) {
-          console.error('Error fetching events:', err);
           setError('Failed to load events: ' + err.message);
           setLoading(false);
         }
       };
-
       fetchEvents();
     }
   }, [showModal, currentUser]);
 
   const handleBookDj = async () => {
     if (!currentUser || currentUser.role !== 'organizer') {
-      alert('Please log in as an organizer to book a DJ.');
+      toast.error('Please log in as an organizer to book a DJ.');
       return;
     }
-
     setShowModal(true);
   };
 
@@ -67,9 +65,8 @@ const DJCard = ({ dj }) => {
       setLoading(true);
       const selectedEvent = events.find((event) => event.id === selectedEventId);
 
-      // Create a new booking
       const bookingRef = collection(firestore, 'bookings');
-      await addDoc(bookingRef, { // Removed unused bookingDoc variable
+      await addDoc(bookingRef, {
         djId: dj.id,
         organizerId: currentUser.uid,
         eventId: selectedEvent.id,
@@ -77,21 +74,26 @@ const DJCard = ({ dj }) => {
         date: selectedEvent.date,
         status: 'pending',
         createdAt: new Date(),
+        price: dj.price || 0,
+        paymentTerms,
+        customerService,
       });
 
-      // Optionally, update the event to include the DJ in the djsBooked array
       const eventRef = doc(firestore, 'events', selectedEvent.id);
       await updateDoc(eventRef, {
         djsBooked: arrayUnion(dj.id),
       });
 
-      alert('Booking request sent! The DJ will be notified.');
+      toast.success('Booking request sent! Funds will be held until completion.');
       setShowModal(false);
       setError(null);
       navigate('/bookings');
+
+      // Placeholder for escrow (implement with backend)
+      // await holdFundsInEscrow({ djId: dj.id, price: dj.price, paymentTerms, customerService });
     } catch (error) {
-      console.error('Error booking DJ:', error);
       setError('Failed to book DJ: ' + error.message);
+      toast.error('Failed to book DJ: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -101,6 +103,8 @@ const DJCard = ({ dj }) => {
     setShowModal(false);
     setError(null);
     setSelectedEventId('');
+    setPaymentTerms('full');
+    setCustomerService(false);
   };
 
   return (
@@ -120,11 +124,11 @@ const DJCard = ({ dj }) => {
         </button>
       )}
 
-      {/* Booking Modal */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2>Book {dj.username} for an Event</h2>
+            <button className="close-modal-btn" onClick={closeModal}>✖</button>
+            <h2>Book {dj.username} on KasiBeats</h2>
             {error && <div className="error-message">{error}</div>}
             {loading ? (
               <div>Loading events...</div>
@@ -147,6 +151,17 @@ const DJCard = ({ dj }) => {
                     </option>
                   ))}
                 </select>
+                <label>Payment Terms:</label>
+                <select value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}>
+                  <option value="full">Full Amount Upfront</option>
+                  <option value="50">50% Upfront, 50% on Completion</option>
+                </select>
+                <label>Customer Service:</label>
+                <select value={customerService} onChange={(e) => setCustomerService(e.target.value === 'true')}>
+                  <option value={false}>Handle Myself</option>
+                  <option value={true}>Use KasiBeats Service</option>
+                </select>
+                <p>Rate: R{dj.price || 'Not Set'} | Conditions: {dj.conditions || 'TBA'}</p>
                 <div className="modal-actions">
                   <button type="submit" className="btn btn-primary" disabled={loading}>
                     {loading ? 'Booking...' : 'Confirm Booking'}

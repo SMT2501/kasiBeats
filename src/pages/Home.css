@@ -180,7 +180,6 @@
 
 .post-media {
   width: 100%;
-  height: 120px;
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 12px;
@@ -377,7 +376,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
   width: 300px;
-  height: 400px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -426,4 +424,218 @@
 .load-more-comments-btn:disabled {
   background: #444;
   cursor: not-allowed;
+}
+
+/* Existing styles... */
+
+/* Event Modal */
+.event-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Use post-modal-content class for consistency */
+.event-modal-content {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  color: #ffffff;
+  position: relative;
+}
+
+/* Ensure close button matches */
+.event-modal-content .close-modal-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #ff00ff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.event-modal-content .close-modal-btn:hover {
+  color: #00f7ff;
+}
+
+/* Ensure header matches post modal */
+.event-modal-content .post-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Ensure media matches post modal */
+.event-modal-content .post-media-large {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* Ensure actions match post modal */
+.event-modal-content .post-actions {
+  margin: 12px 0;
+  text-align: center;
+}
+
+/* Ensure DJ section styling */
+.event-djs-section {
+  margin-top: 16px;
+  padding: 12px;
+  background: #242424;
+  border-radius: 8px;
+}
+
+.event-djs-section h4 {
+  font-size: 1.2rem;
+  color: #00f7ff;
+  margin-bottom: 12px;
+}
+
+.dj-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.dj-item {
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+.dj-item strong {
+  color: #ff00ff;
+  margin-right: 8px;
+}
+
+/* Existing styles... */
+
+/* Post Card Styling */
+.post-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+  width: 300px;
+  min-height: 400px; /* Changed from height to min-height */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.post-card:hover {
+  transform: scale(1.02);
+}
+
+.post-content {
+  font-size: 1rem;
+  color: #ddd;
+  margin-bottom: 12px;
+  flex-grow: 0;
+}
+
+.event-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-details h4 {
+  font-size: 1.2rem;
+  color: #ff00ff;
+  margin: 0 0 8px 0;
+}
+
+.event-details p {
+  font-size: 0.9rem;
+  color: #ddd;
+  margin: 0;
+}
+
+.event-description {
+  font-size: 0.9rem;
+  color: #bbb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.post-media {
+  width: 100%;
+  max-height: 150px; /* Reduced to fit more content */
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* Modal Event Details */
+.event-details-modal {
+  margin-top: 16px;
+}
+
+.event-details-modal h2 {
+  font-size: 1.5rem;
+  color: #ff00ff;
+  margin-bottom: 12px;
+}
+
+.event-details-modal p {
+  font-size: 1rem;
+  color: #ddd;
+  margin: 8px 0;
+}
+
+/* Ensure DJ section matches Events.js */
+.event-djs-section {
+  margin-top: 20px;
+}
+
+.event-djs-section h4 {
+  font-size: 1.2rem;
+  color: #00f7ff;
+  margin-bottom: 10px;
+}
+
+.dj-list {
+  list-style: none;
+  padding: 0;
+}
+
+.dj-item {
+  font-size: 1rem;
+  color: #ddd;
+  margin-bottom: 8px;
+}
+
+.status-pending {
+  color: #ffa500;
+}
+
+.status-confirmed {
+  color: #00ff00;
+}
+
+.status-cancelled {
+  color: #ff0000;
 }

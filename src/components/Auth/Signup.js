@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { auth, firestore } from '../../firebaseConfig';
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, sendEmailVerification, getRedirectResult } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import './Auth.css';
 import { Link, useNavigate } from 'react-router-dom';
@@ -26,13 +26,16 @@ const Signup = () => {
       const user = userCredential.user;
       await sendEmailVerification(user);
 
-      await setDoc(doc(firestore, 'users', user.uid), {
-        email,
-        role,
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await setDoc(userDocRef, {
+        email: user.email,
+        role: role,
         profilePicture: '',
         username: '',
         bio: '',
+        fcmToken: ''
       });
+
       toast.success('Signup successful! Please verify your email.');
       navigate('/profile');
     } catch (error) {
@@ -52,12 +55,25 @@ const Signup = () => {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-      console.log('Initiating Google redirect to:', window.location.origin); // Debug
-      await signInWithRedirect(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await setDoc(userDocRef, {
+        email: user.email,
+        role: role,
+        profilePicture: user.photoURL || '',
+        username: user.displayName || '',
+        bio: '',
+        fcmToken: ''
+      });
+
+      toast.success('Signup successful!');
+      navigate('/profile');
     } catch (error) {
       setError(error.message);
       toast.error('Google signup failed: ' + error.message);
-      console.error('Google redirect error:', error); // Debug
+      console.error('Google signup error:', error); // Debug
     }
   };
 
@@ -72,52 +88,27 @@ const Signup = () => {
       const provider = new FacebookAuthProvider();
       provider.addScope('public_profile');
       provider.addScope('email');
-      console.log('Initiating Facebook redirect to:', window.location.origin); // Debug
-      await signInWithRedirect(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await setDoc(userDocRef, {
+        email: user.email,
+        role: role,
+        profilePicture: user.photoURL || '',
+        username: user.displayName || '',
+        bio: '',
+        fcmToken: ''
+      });
+
+      toast.success('Signup successful!');
+      navigate('/profile');
     } catch (error) {
       setError(error.message);
       toast.error('Facebook signup failed: ' + error.message);
-      console.error('Facebook redirect error:', error); // Debug
+      console.error('Facebook signup error:', error); // Debug
     }
   };
-
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          console.log('Redirect result user:', result.user.uid, 'Email:', result.user.email); // Enhanced debug
-          const user = result.user;
-          const userRef = doc(firestore, 'users', user.uid);
-          const userDoc = await getDoc(userRef);
-          if (!userDoc.exists()) {
-            await setDoc(userRef, {
-              email: user.email,
-              role,
-              profilePicture: user.photoURL || '',
-              username: user.displayName || '',
-              bio: '',
-            });
-          }
-          toast.success('Signup successful!');
-          navigate('/profile');
-        } else if (window.location.search.includes('error')) {
-          const params = new URLSearchParams(window.location.search);
-          const errorDesc = params.get('error_description') || 'Authentication failed';
-          setError(errorDesc);
-          toast.error('Authentication failed: ' + errorDesc);
-          console.error('Redirect error params:', params.toString()); // Debug
-        } else {
-          console.log('No redirect result or error in URL:', window.location.href); // Debug
-        }
-      } catch (error) {
-        setError(error.message);
-        toast.error('Redirect login failed: ' + error.message);
-        console.error('Redirect error:', error); // Debug
-      }
-    };
-    handleRedirectResult();
-  }, [role, navigate]);
 
   return (
     <div className="auth-container">
@@ -158,7 +149,7 @@ const Signup = () => {
         Signup with Google
       </button>
       <button className="btn facebook-btn" onClick={handleFacebookSignup}>
-        Login with Facebook
+        Signup with Facebook
       </button>
       <p>
         Already have an account? <Link to="/login">Login here</Link>

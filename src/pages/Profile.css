@@ -1,7 +1,7 @@
 .profile {
   padding: 40px 20px;
-  background: #1a1a1a; /* Dark background */
-  color: #ffffff; /* White text */
+  background: #1a1a1a;
+  color: #ffffff;
   min-height: 100vh;
 }
 
@@ -21,16 +21,13 @@
 .profile-header h2 {
   font-size: 2rem;
   margin-bottom: 8px;
-  /* Neon gradient already applied globally */
 }
 
 .profile-header p {
   font-size: 1rem;
-  color: #ddd; /* Light gray text */
+  color: #ddd;
   margin: 4px 0;
 }
-
-/* Button styles are already defined globally */
 
 .dj-bookings,
 .user-posts,
@@ -43,42 +40,61 @@
 .organizer-events h3 {
   font-size: 1.8rem;
   margin-bottom: 16px;
-  color: #00f7ff; /* Neon cyan for subheadings */
+  color: #00f7ff;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 .booking-card,
 .post-card,
 .event-card {
-  background: #2a2a2a; /* Slightly lighter dark for cards */
+  background: #2a2a2a;
   border-radius: 12px;
   padding: 16px;
-  margin-bottom: 16px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 300px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .booking-card h4,
 .post-card h4,
 .event-card h4 {
   font-size: 1.5rem;
-  color: #ff00ff; /* Neon magenta for card titles */
+  color: #ff00ff;
   margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .booking-card p,
 .post-card p,
 .event-card p {
   font-size: 1rem;
-  color: #ddd; /* Light gray text */
+  color: #ddd;
   margin: 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .post-media,
 .event-media {
   width: 100%;
-  max-height: 300px;
+  height: 200px;
   object-fit: cover;
   border-radius: 8px;
-  margin-top: 8px;
+  margin-top: auto;
 }
 
 .posts-header,
@@ -107,4 +123,318 @@
 .fab:hover {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(0, 247, 255, 0.5);
+}
+
+/* Booking Modal Styles */
+.booking-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.booking-modal-content {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.close-modal-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #ff00ff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.booking-modal-content h2 {
+  font-size: 2rem;
+  color: #00f7ff;
+  margin-bottom: 16px;
+}
+
+.booking-modal-content p {
+  font-size: 1rem;
+  color: #ddd;
+  margin: 8px 0;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.booking-actions .btn {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.booking-actions .btn:hover {
+  transform: scale(1.05);
+}
+
+.booking-actions .map-btn {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+}
+
+.booking-actions .accept-btn {
+  background: linear-gradient(45deg, #00ff00, #00f7ff);
+}
+
+.booking-actions .reject-btn {
+  background: linear-gradient(45deg, #ff5555, #ff00ff);
+}
+
+/* Post Modal Styles */
+.post-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.post-modal-content {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  color: #ffffff;
+}
+
+.post-modal-content h2 {
+  font-size: 2rem;
+  color: #00f7ff;
+  margin-bottom: 16px;
+}
+
+.post-modal-content p {
+  font-size: 1rem;
+  color: #ddd;
+  margin: 8px 0;
+}
+
+.post-media-large {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.post-actions .btn {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.post-actions .btn:hover {
+  transform: scale(1.05);
+}
+
+.post-actions .delete-btn {
+  background: linear-gradient(45deg, #ff5555, #ff00ff);
+}
+
+.post-actions .share-btn {
+  background: linear-gradient(45deg, #00ffaa, #00f7ff);
+}
+
+.edit-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-post-form label {
+  font-size: 1rem;
+  color: #00f7ff;
+}
+
+.edit-post-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.edit-post-form button {
+  align-self: flex-start;
+}
+
+/* Event Modal Styles */
+.event-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.event-modal-content {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  color: #ffffff;
+}
+
+.event-modal-content h2 {
+  font-size: 2rem;
+  color: #00f7ff;
+  margin-bottom: 16px;
+}
+
+.event-modal-content p {
+  font-size: 1rem;
+  color: #ddd;
+  margin: 8px 0;
+}
+
+.event-media-large {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.event-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.event-actions .btn {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.event-actions .btn:hover {
+  transform: scale(1.05);
+}
+
+.event-actions .cancel-btn {
+  background: linear-gradient(45deg, #ff5555, #ff00ff);
+}
+
+.event-actions .share-btn {
+  background: linear-gradient(45deg, #00ffaa, #00f7ff);
+}
+
+.edit-event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-event-form label {
+  font-size: 1rem;
+  color: #00f7ff;
+}
+
+.edit-event-form input,
+.edit-event-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.edit-event-form button {
+  align-self: flex-start;
+}
+
+.event-djs-section {
+  margin-top: 20px;
+}
+
+.event-djs-section h4 {
+  font-size: 1.5rem;
+  color: #ff00ff;
+  margin-bottom: 10px;
+}
+
+.dj-list {
+  list-style: none;
+  padding: 0;
+}
+
+.dj-item {
+  padding: 8px;
+  background: #333;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.dj-item .status-pending {
+  color: #ffaa00;
+}
+
+.dj-item .status-accepted {
+  color: #00ff00;
+}
+
+.dj-item .status-rejected {
+  color: #ff5555;
 }

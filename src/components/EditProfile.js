@@ -4,7 +4,7 @@ import { firestore, storage } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { toast } from 'react-toastify'; // Import toast
+import { toast } from 'react-toastify';
 import './EditProfile.css';
 
 const EditProfile = () => {
@@ -14,6 +14,8 @@ const EditProfile = () => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [profilePictureURL, setProfilePictureURL] = useState('');
   const [role, setRole] = useState('');
+  const [price, setPrice] = useState(0);
+  const [conditions, setConditions] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -28,24 +30,28 @@ const EditProfile = () => {
         return;
       }
 
+      console.log('Fetching profile for user:', currentUser.uid); // Debug
       try {
         const userRef = doc(firestore, 'users', currentUser.uid);
         const profileDoc = await getDoc(userRef);
         if (profileDoc.exists()) {
           const profileData = profileDoc.data();
+          console.log('Profile data fetched:', profileData); // Debug
           setUsername(profileData.username || '');
           setBio(profileData.bio || '');
           setProfilePictureURL(profileData.profilePicture || '');
           setRole(profileData.role || '');
+          setPrice(profileData.price || 0); // Ensure default is 0
+          setConditions(profileData.conditions || ''); // Ensure default is empty string
         } else {
           setError('Profile not found. Please try again.');
           toast.error('Profile not found. Please try again.');
         }
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        setError('Failed to load profile: ' + error.message);
-        toast.error('Failed to load profile: ' + error.message);
+      } catch (err) {
+        console.error('Error fetching profile:', err); // Debug
+        setError('Failed to load profile: ' + err.message);
+        toast.error('Failed to load profile: ' + err.message);
         setLoading(false);
       }
     };
@@ -56,6 +62,7 @@ const EditProfile = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log('Selected file:', file.name, file.type, file.size); // Debug
       if (!file.type.startsWith('image/')) {
         setError('Please upload an image file.');
         toast.error('Please upload an image file.');
@@ -67,6 +74,7 @@ const EditProfile = () => {
         return;
       }
       setProfilePicture(file);
+      setProfilePictureURL(URL.createObjectURL(file)); // Update preview immediately
       setError(null);
     }
   };
@@ -85,29 +93,34 @@ const EditProfile = () => {
       let newProfilePictureURL = profilePictureURL;
 
       if (profilePicture) {
-        console.log('Uploading new profile picture...');
+        console.log('Uploading profile picture for user:', currentUser.uid); // Debug
         const storageRef = ref(storage, `profile_pictures/${currentUser.uid}`);
-        await uploadBytes(storageRef, profilePicture);
+        const snapshot = await uploadBytes(storageRef, profilePicture);
+        console.log('Upload snapshot:', snapshot); // Debug
         newProfilePictureURL = await getDownloadURL(storageRef);
-        console.log('New profile picture uploaded:', newProfilePictureURL);
+        console.log('New profile picture URL:', newProfilePictureURL); // Debug
       }
 
       const userRef = doc(firestore, 'users', currentUser.uid);
-      await setDoc(
-        userRef,
-        {
-          username,
-          bio,
-          profilePicture: newProfilePictureURL,
-          role,
-        },
-        { merge: true }
-      );
+      const updatedData = {
+        username,
+        bio,
+        profilePicture: newProfilePictureURL,
+        role,
+      };
 
-      toast.success('Profile updated successfully!');
+      if (role === 'dj') {
+        updatedData.price = price;
+        updatedData.conditions = conditions;
+      }
+
+      console.log('Updating profile with data:', updatedData); // Debug
+      await setDoc(userRef, updatedData, { merge: true });
+
+      toast.success('Profile updated successfully on KasiBeats!');
       navigate('/profile');
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error updating profile:', error); // Debug
       setError('Error updating profile: ' + error.message);
       toast.error('Error updating profile: ' + error.message);
     } finally {
@@ -120,7 +133,7 @@ const EditProfile = () => {
 
   return (
     <div className="edit-profile-container">
-      <h2>Edit Profile</h2>
+      <h2>Edit Profile on KasiBeats</h2>
       <form onSubmit={handleSubmit}>
         <label htmlFor="username">Username:</label>
         <input
@@ -158,6 +171,28 @@ const EditProfile = () => {
           onChange={handleFileChange}
         />
         {profilePictureURL && <img src={profilePictureURL} alt="Profile" className="profile-picture-preview" />}
+        {role === 'dj' && (
+          <>
+            <label htmlFor="price">Rate (R):</label>
+            <input
+              type="number"
+              id="price"
+              value={price}
+              onChange={(e) => setPrice(Number(e.target.value))}
+              min="0"
+              required
+            />
+            <label htmlFor="conditions">Booking Conditions:</label>
+            <input
+              type="text"
+              id="conditions"
+              value={conditions}
+              onChange={(e) => setConditions(e.target.value)}
+              placeholder="e.g., 50% upfront"
+              required
+            />
+          </>
+        )}
         {error && <div className="error-message">{error}</div>}
         <button type="submit" className="btn" disabled={uploading}>
           {uploading ? 'Saving...' : 'Save'}

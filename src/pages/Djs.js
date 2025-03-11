@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { firestore } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
-import { collection, query, where, getDocs, updateDoc, doc, arrayUnion, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, updateDoc, arrayUnion, orderBy, limit } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import defaultProfilePicture from '../assets/images/profile.jpg';
 import './Djs.css';
@@ -10,55 +10,119 @@ import './Djs.css';
 const Djs = () => {
   const { currentUser } = useContext(AuthContext);
   const [djs, setDjs] = useState([]);
+  const [events, setEvents] = useState([]); // Store organizer's events
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDj, setSelectedDj] = useState(null); // Track the DJ to show in the modal
-  const [djBookings, setDjBookings] = useState([]); // Store bookings for the selected DJ
-  const [djPosts, setDjPosts] = useState([]); // Store posts for the selected DJ
+  const [sortBy, setSortBy] = useState('username');
+  const [selectedDj, setSelectedDj] = useState(null);
+  const [djBookings, setDjBookings] = useState([]);
+  const [djPosts, setDjPosts] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(''); // Selected event for booking
+  const [agreeToConditions, setAgreeToConditions] = useState(false); // Conditions agreement
 
   useEffect(() => {
-    const fetchDjs = async () => {
+    const fetchData = async () => {
       try {
-        console.log('Fetching DJs...');
+        setLoading(true);
+
+        // Fetch DJs
         const djQuery = query(
           collection(firestore, 'users'),
-          where('role', '==', 'dj')
+          where('role', '==', 'dj'),
+          orderBy(sortBy)
         );
         const djSnapshot = await getDocs(djQuery);
         const djData = djSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        console.log('Fetched DJs:', djData);
         setDjs(djData);
+
+        // Fetch events for organizer (if logged in)
+        if (currentUser && currentUser.role === 'organizer') {
+          const eventsQuery = query(
+            collection(firestore, 'events'),
+            where('organizerId', '==', currentUser.uid)
+          );
+          const eventsSnapshot = await getDocs(eventsQuery);
+          const eventsData = await Promise.all(
+            eventsSnapshot.docs.map(async (eventDoc) => {
+              const eventData = eventDoc.data();
+              return {
+                id: eventDoc.id,
+                ...eventData,
+                date: eventData.date && typeof eventData.date.toDate === 'function'
+                  ? eventData.date.toDate()
+                  : eventData.date ? new Date(eventData.date) : null,
+              };
+            })
+          );
+          setEvents(eventsData);
+        }
+
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching DJs:', err);
-        setError('Failed to load DJs: ' + err.message);
-        toast.error('Failed to load DJs: ' + err.message);
+        setError('Failed to load data: ' + err.message);
+        toast.error('Failed to load data: ' + err.message);
         setLoading(false);
       }
     };
 
-    fetchDjs();
-  }, []);
+    fetchData();
+  }, [sortBy, currentUser]);
 
-  const handleBookDj = async (djId) => {
+  const handleBookDj = async (djId, djDetails) => {
     if (!currentUser || currentUser.role !== 'organizer') {
       toast.error('Please log in as an organizer to book a DJ.');
       return;
     }
 
+    if (!selectedEventId) {
+      toast.error('Please select an event.');
+      return;
+    }
+
+    if (!agreeToConditions) {
+      toast.error('You must agree to the DJ’s conditions before booking.');
+      return;
+    }
+
     try {
-      // Placeholder logic; replace with actual event selection (handled by modal in DJCard)
-      const eventRef = doc(firestore, 'events', 'some-event-id'); // Replace with actual event ID
-      await updateDoc(eventRef, {
-        djsBooked: arrayUnion(djId),
+      const event = events.find((e) => e.id === selectedEventId);
+      if (!event) throw new Error('Event not found.');
+
+      const bookingRef = await addDoc(collection(firestore, 'bookings'), {
+        eventId: selectedEventId,
+        djId,
+        organizerId: currentUser.uid,
+        eventName: event.name || 'Untitled Event',
+        date: event.date,
+        price: djDetails.price || 0, // Use DJ's price
+        conditions: djDetails.conditions || '', // Use DJ's conditions
+        status: 'pending',
+        createdAt: new Date(),
+        paid: false,
       });
-      toast.success('DJ booked successfully!');
+
+      const eventRef = doc(firestore, 'events', selectedEventId);
+      await updateDoc(eventRef, {
+        pendingDjs: arrayUnion(djId),
+      });
+
+      // Notify the DJ
+      await addDoc(collection(firestore, 'notifications'), {
+        userId: djId,
+        message: `You have a new booking request for "${event.name}" from ${currentUser.displayName || 'an organizer'} with a rate of R${djDetails.price || 0} and conditions: ${djDetails.conditions || 'Not specified'}.`,
+        createdAt: new Date(),
+        read: false,
+      });
+
+      toast.success('DJ booking request sent!');
+      setSelectedEventId('');
+      setAgreeToConditions(false);
+      closeDjModal();
     } catch (err) {
-      console.error('Error booking DJ:', err);
       toast.error('Failed to book DJ: ' + err.message);
     }
   };
@@ -69,8 +133,9 @@ const Djs = () => {
 
   const openDjModal = async (dj) => {
     setSelectedDj(dj);
+    setSelectedEventId(''); // Reset event selection
+    setAgreeToConditions(false); // Reset conditions agreement
 
-    // Fetch bookings for this DJ
     try {
       let bookingsQuery;
       if (currentUser && (currentUser.uid === dj.id || currentUser.role === 'organizer')) {
@@ -80,7 +145,6 @@ const Djs = () => {
         );
 
         if (currentUser.role === 'organizer') {
-          // For organizers, only show bookings they made
           bookingsQuery = query(
             collection(firestore, 'bookings'),
             where('djId', '==', dj.id),
@@ -95,15 +159,14 @@ const Djs = () => {
         }));
         setDjBookings(bookingsData);
       } else {
-        setDjBookings([]); // Clear bookings if user is not authorized to see them
+        setDjBookings([]);
       }
 
-      // Fetch recent posts by this DJ
       const postsQuery = query(
         collection(firestore, 'posts'),
         where('userId', '==', dj.id),
         orderBy('createdAt', 'desc'),
-        limit(3) // Limit to 3 recent posts
+        limit(3)
       );
       const postsSnapshot = await getDocs(postsQuery);
       const postsData = postsSnapshot.docs.map((doc) => ({
@@ -112,7 +175,6 @@ const Djs = () => {
       }));
       setDjPosts(postsData);
     } catch (err) {
-      console.error('Error fetching DJ details:', err);
       toast.error('Failed to load DJ details: ' + err.message);
     }
   };
@@ -132,7 +194,7 @@ const Djs = () => {
 
   return (
     <div className="djs-container">
-      <h2>Browse DJs</h2>
+      <h2>Browse DJs on KasiBeats</h2>
       <div className="search-container">
         <input
           type="text"
@@ -148,7 +210,14 @@ const Djs = () => {
           </button>
         )}
       </div>
-      <div className="dj-list">
+      <div className="sort-container">
+        <label htmlFor="sortBy">Sort by:</label>
+        <select id="sortBy" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="username">Username</option>
+          <option value="email">Email</option>
+        </select>
+      </div>
+      <div className="dj-grid">
         {filteredDjs.length > 0 ? (
           filteredDjs.map((dj) => (
             <div
@@ -167,8 +236,8 @@ const Djs = () => {
               {currentUser?.role === 'organizer' && (
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent modal from opening when clicking Book DJ
-                    handleBookDj(dj.id);
+                    e.stopPropagation();
+                    handleBookDj(dj.id, dj);
                   }}
                 >
                   Book DJ
@@ -181,7 +250,6 @@ const Djs = () => {
         )}
       </div>
 
-      {/* DJ Modal */}
       {selectedDj && (
         <div className="dj-modal-overlay">
           <div className="dj-modal-content">
@@ -199,7 +267,6 @@ const Djs = () => {
                 <p className="dj-bio">{selectedDj.bio || 'No bio available'}</p>
               </div>
             </div>
-            {/* Bookings Section */}
             {(currentUser?.uid === selectedDj.id || (currentUser?.role === 'organizer' && djBookings.length > 0)) && (
               <div className="dj-bookings-section">
                 <h4>Bookings</h4>
@@ -215,6 +282,9 @@ const Djs = () => {
                             : 'Date unavailable'}
                         </p>
                         <p>Status: {booking.status || 'Pending'}</p>
+                        <p>Rate: R{booking.price || 0}</p>
+                        <p>Conditions: {booking.conditions || 'Not specified'}</p>
+                        <p>Payment Status: {booking.paid ? 'Paid' : 'Not Paid'}</p>
                       </li>
                     ))}
                   </ul>
@@ -223,7 +293,41 @@ const Djs = () => {
                 )}
               </div>
             )}
-            {/* Recent Posts Section */}
+            {currentUser?.role === 'organizer' && (
+              <div className="dj-booking-form">
+                <h4>Book This DJ</h4>
+                <select
+                  value={selectedEventId}
+                  onChange={(e) => setSelectedEventId(e.target.value)}
+                  required
+                >
+                  <option value="">Select Event</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.name} - {event.date?.toLocaleDateString() || 'Date unavailable'}
+                    </option>
+                  ))}
+                </select>
+                <div className="dj-details">
+                  <p>Rate: R{selectedDj.price || 0}</p>
+                  <p>Conditions: {selectedDj.conditions || 'Not specified'}</p>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={agreeToConditions}
+                      onChange={(e) => setAgreeToConditions(e.target.checked)}
+                    />
+                    I agree to the DJ’s conditions
+                  </label>
+                </div>
+                <button
+                  onClick={() => handleBookDj(selectedDj.id, selectedDj)}
+                  className="btn"
+                >
+                  Confirm Booking
+                </button>
+              </div>
+            )}
             <div className="dj-posts-section">
               <h4>Recent Posts</h4>
               {djPosts.length > 0 ? (

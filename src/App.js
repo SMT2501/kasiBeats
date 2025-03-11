@@ -8,10 +8,12 @@ import AuthNavigation from './context/AuthNavigation';
 import ErrorBoundary from './ErrorBoundary';
 import { auth, messaging, firestore } from './firebaseConfig';
 import { getToken, onMessage } from 'firebase/messaging';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import MyBookings from './pages/MyBookings';
+import MyEvents from './pages/MyEvents';
 import './App.css';
 
 // Lazy load components
@@ -28,11 +30,16 @@ const CreatePost = lazy(() => import('./components/CreatePost'));
 const CreateEvent = lazy(() => import('./components/CreateEvent'));
 const VerifyEmail = lazy(() => import('./components/VerifyEmail'));
 const EventDetail = lazy(() => import('./components/EventDetail'));
+const EditEvent = lazy(() => import('./components/EditEvent'));
 const Djs = lazy(() => import('./pages/Djs'));
 const Checkout = lazy(() => import('./components/Checkout'));
 
 const ProtectedRoute = ({ children, role }) => {
   const { currentUser, loading } = useContext(AuthContext);
+
+  useEffect(() => {
+    console.log('ProtectedRoute - currentUser:', currentUser, 'role:', role, 'loading:', loading); // Debug
+  }, [currentUser, role, loading]);
 
   if (loading) {
     return (
@@ -44,10 +51,17 @@ const ProtectedRoute = ({ children, role }) => {
   }
 
   if (!currentUser) {
+    console.log('Redirecting to login due to no user'); // Debug
     return <Navigate to="/login" />;
   }
 
+  if (role && currentUser.role === undefined) {
+    console.log('Role not yet loaded, waiting...'); // Debug
+    return null; // Temporarily render nothing
+  }
+
   if (role && currentUser.role !== role) {
+    console.log('Redirecting to home due to role mismatch:', currentUser.role, '!=', role); // Debug
     return <Navigate to="/" />;
   }
 
@@ -72,6 +86,11 @@ const App = () => {
             if (user) {
               const userRef = doc(firestore, 'users', user.uid);
               await setDoc(userRef, { fcmToken: token }, { merge: true });
+              const userDoc = await getDoc(userRef);
+              if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                console.log('User role from Firestore:', role);
+              }
             }
           });
         }
@@ -85,7 +104,7 @@ const App = () => {
           new Notification(notificationTitle, notificationOptions);
         });
       } catch (error) {
-        // Handle silently or log to a monitoring service in production
+        console.error('Push notification registration error:', error);
       }
     };
 
@@ -109,6 +128,7 @@ const App = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/events/:eventId" element={<EventDetail />} />
+                <Route path="/events/:eventId/edit" element={<ProtectedRoute><EditEvent /></ProtectedRoute>} />
                 <Route path="/events/:eventId/checkout" element={<Checkout />} />
                 <Route
                   path="/bookings"
@@ -126,6 +146,8 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/my-bookings" element={<MyBookings />} />
+                <Route path="/my-events" element={<MyEvents />} />
                 <Route
                   path="/profile/:userId?"
                   element={
@@ -148,7 +170,7 @@ const App = () => {
                 <Route
                   path="/create_post"
                   element={
-                    <ProtectedRoute role="dj">
+                    <ProtectedRoute>
                       <CreatePost />
                     </ProtectedRoute>
                   }
@@ -156,7 +178,7 @@ const App = () => {
                 <Route
                   path="/create_event"
                   element={
-                    <ProtectedRoute role="organizer">
+                    <ProtectedRoute>
                       <CreateEvent />
                     </ProtectedRoute>
                   }
@@ -170,6 +192,11 @@ const App = () => {
                   }
                 />
                 <Route path="/djs" element={<Djs />} />
+                <Route path="*" element={<div>Page Not Found</div>} />
+                <Route
+                  path="/error"
+                  element={<div>Error occurred. Please try again or contact support.</div>}
+                />
               </Routes>
             </Suspense>
             <Footer />

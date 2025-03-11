@@ -6,7 +6,7 @@ import { firestore } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
 import { collection, query, getDocs, where, doc, getDoc, addDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import moment from 'moment';
+import moment from 'moment'; // Added missing import
 import './Events.css';
 
 // Initialize Stripe with your publishable key
@@ -75,19 +75,15 @@ const Events = () => {
   }, [currentUser]);
 
   const filteredEvents = events.filter((event) => {
-    const hasSearchTerm = searchTerm && event.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const hasLocationFilter = locationFilter && event.location?.toLowerCase().includes(locationFilter.toLowerCase());
+    const matchesName = event.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLocation = locationFilter ? event.location?.toLowerCase().includes(locationFilter.toLowerCase()) : true;
     const eventDate = event.date instanceof Date ? event.date : null;
-    const hasDateRange = (startDate || endDate) && eventDate && 
-      (!startDate || eventDate >= startDate) && (!endDate || eventDate <= endDate);
-    const hasPriceRange = (priceRange[0] > 0 || priceRange[1] < 1000) && event.ticketPrice &&
-      event.ticketPrice >= priceRange[0] && event.ticketPrice <= priceRange[1];
-
-    // Only filter if at least one filter is actively applied
-    if (hasSearchTerm || hasLocationFilter || hasDateRange || hasPriceRange) {
-      return hasSearchTerm || hasLocationFilter || hasDateRange || hasPriceRange;
-    }
-    return true; // Return all events if no filters are applied
+    const matchesDateRange = eventDate && (!startDate || eventDate >= startDate) && (!endDate || eventDate <= endDate);
+    const matchesPriceRange = event.ticketPrice
+      ? event.ticketPrice >= priceRange[0] && event.ticketPrice <= priceRange[1]
+      : true;
+    console.log('Filtering event:', event.name, 'date:', eventDate, 'ticketPrice:', event.ticketPrice);
+    return matchesName && matchesLocation && matchesDateRange && matchesPriceRange;
   });
 
   const clearSearch = () => {

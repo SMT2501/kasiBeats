@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { firestore } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
-import { collection, query, where, getDocs, getDoc, updateDoc, doc, addDoc, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, updateDoc, doc, addDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import './Bookings.css';
 
@@ -18,23 +18,43 @@ const Bookings = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching data, currentUser:', currentUser); // Debug
         if (!currentUser) {
           setError('Please log in to view bookings.');
           setLoading(false);
           return;
         }
 
-        if (currentUser.role === 'dj') {
+        setLoading(true);
+        if (currentUser) {
           const bookingsQuery = query(
             collection(firestore, 'bookings'),
             where('djId', '==', currentUser.uid)
           );
           const bookingsSnapshot = await getDocs(bookingsQuery);
-          const bookingsData = bookingsSnapshot.docs.map((bookingDoc) => ({
-            id: bookingDoc.id,
-            ...bookingDoc.data(),
-          }));
+          console.log('Bookings snapshot size:', bookingsSnapshot.size); // Debug
+          const bookingsData = await Promise.all(
+            bookingsSnapshot.docs.map(async (bookingDoc) => {
+              try {
+                const eventRef = doc(firestore, 'events', bookingDoc.data().eventId);
+                const eventDoc = await getDoc(eventRef);
+                const eventData = eventDoc.exists() ? eventDoc.data() : {};
+                return {
+                  id: bookingDoc.id,
+                  ...bookingDoc.data(),
+                  eventName: eventData.name || 'Untitled Event',
+                  eventDate: eventData.date && typeof eventData.date.toDate === 'function'
+                    ? eventData.date.toDate()
+                    : eventData.date ? new Date(eventData.date) : null,
+                };
+              } catch (err) {
+                console.error('Error fetching event for booking', bookingDoc.id, ':', err);
+                return { id: bookingDoc.id, ...bookingDoc.data(), eventName: 'Untitled Event', eventDate: null };
+              }
+            })
+          );
           setDjBookings(bookingsData);
+          console.log('DJ bookings loaded:', bookingsData.length);
         }
 
         if (currentUser.role === 'organizer') {
@@ -43,10 +63,19 @@ const Bookings = () => {
             where('organizerId', '==', currentUser.uid)
           );
           const eventsSnapshot = await getDocs(eventsQuery);
-          const eventsData = eventsSnapshot.docs.map((eventDoc) => ({
-            id: eventDoc.id,
-            ...eventDoc.data(),
-          }));
+          console.log('Events snapshot size:', eventsSnapshot.size); // Debug
+          const eventsData = await Promise.all(
+            eventsSnapshot.docs.map(async (eventDoc) => {
+              const eventData = eventDoc.data();
+              return {
+                id: eventDoc.id,
+                ...eventData,
+                date: eventData.date && typeof eventData.date.toDate === 'function'
+                  ? eventData.date.toDate()
+                  : eventData.date ? new Date(eventData.date) : null,
+              };
+            })
+          );
           setEvents(eventsData);
 
           const djsQuery = query(
@@ -63,7 +92,7 @@ const Bookings = () => {
 
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching bookings:', err);
+        console.error('Fetch data error:', err);
         setError('Failed to load bookings: ' + err.message);
         toast.error('Failed to load bookings: ' + err.message);
         setLoading(false);
@@ -75,44 +104,55 @@ const Bookings = () => {
 
   const handleBookDj = async (e) => {
     e.preventDefault();
-  
+
     if (!eventId || !djId) {
       toast.error('Please select an event and a DJ.');
       return;
     }
-  
+
     try {
+      const event = events.find((e) => e.id === eventId);
+      if (!event) throw new Error('Event not found.');
+
       await addDoc(collection(firestore, 'bookings'), {
         eventId,
         djId,
         organizerId: currentUser.uid,
-        eventName: events.find((event) => event.id === eventId)?.name || 'Untitled Event',
-        date: events.find((event) => event.id === eventId)?.date,
+        eventName: event.name || 'Untitled Event',
+        date: event.date,
+        price: event.ticketPrice || 0,
         status: 'pending',
         createdAt: new Date(),
       });
-  
+
       const eventRef = doc(firestore, 'events', eventId);
       await updateDoc(eventRef, {
-        djsBooked: arrayUnion(djId),
+        pendingDjs: arrayUnion(djId),
       });
-  
+
       toast.success('DJ booking request sent!');
       setEventId('');
       setDjId('');
-  
+
       const eventsQuery = query(
         collection(firestore, 'events'),
         where('organizerId', '==', currentUser.uid)
       );
       const eventsSnapshot = await getDocs(eventsQuery);
-      const updatedEvents = eventsSnapshot.docs.map((eventDoc) => ({
-        id: eventDoc.id,
-        ...eventDoc.data(),
-      }));
+      const updatedEvents = await Promise.all(
+        eventsSnapshot.docs.map(async (eventDoc) => {
+          const eventData = eventDoc.data();
+          return {
+            id: eventDoc.id,
+            ...eventData,
+            date: eventData.date && typeof eventData.date.toDate === 'function'
+              ? eventData.date.toDate()
+              : eventData.date ? new Date(eventData.date) : null,
+          };
+        })
+      );
       setEvents(updatedEvents);
     } catch (err) {
-      console.error('Error booking DJ:', err);
       toast.error('Failed to book DJ: ' + err.message);
     }
   };
@@ -124,41 +164,62 @@ const Bookings = () => {
         status: 'accepted',
       });
 
-      // Ensure the DJ's ID is in the event's djsBooked array
       const eventRef = doc(firestore, 'events', eventId);
       await updateDoc(eventRef, {
-        djsBooked: arrayUnion(djId), // Add DJ to djsBooked if not already present
+        djsBooked: arrayUnion(djId),
+        pendingDjs: arrayRemove(djId),
       });
 
       toast.success('Booking accepted!');
 
-      // Refresh bookings to reflect the updated status
       const bookingsQuery = query(
         collection(firestore, 'bookings'),
         where('djId', '==', currentUser.uid)
       );
       const bookingsSnapshot = await getDocs(bookingsQuery);
-      const updatedBookings = bookingsSnapshot.docs.map((bookingDoc) => ({
-        id: bookingDoc.id,
-        ...bookingDoc.data(),
-      }));
+      const updatedBookings = await Promise.all(
+        bookingsSnapshot.docs.map(async (bookingDoc) => {
+          try {
+            const eventRef = doc(firestore, 'events', bookingDoc.data().eventId);
+            const eventDoc = await getDoc(eventRef);
+            const eventData = eventDoc.exists() ? eventDoc.data() : {};
+            return {
+              id: bookingDoc.id,
+              ...bookingDoc.data(),
+              eventName: eventData.name || 'Untitled Event',
+              eventDate: eventData.date && typeof eventData.date.toDate === 'function'
+                ? eventData.date.toDate()
+                : eventData.date ? new Date(eventData.date) : null,
+            };
+          } catch (err) {
+            console.error('Error fetching event for booking', bookingDoc.id, ':', err);
+            return { id: bookingDoc.id, ...bookingDoc.data(), eventName: 'Untitled Event', eventDate: null };
+          }
+        })
+      );
       setDjBookings(updatedBookings);
 
-      // Refresh events in the organizer view if needed
       if (currentUser.role === 'organizer') {
         const eventsQuery = query(
           collection(firestore, 'events'),
           where('organizerId', '==', currentUser.uid)
         );
         const eventsSnapshot = await getDocs(eventsQuery);
-        const updatedEvents = eventsSnapshot.docs.map((eventDoc) => ({
-          id: eventDoc.id,
-          ...eventDoc.data(),
-        }));
+        const updatedEvents = await Promise.all(
+          eventsSnapshot.docs.map(async (eventDoc) => {
+            const eventData = eventDoc.data();
+            return {
+              id: eventDoc.id,
+              ...eventData,
+              date: eventData.date && typeof eventData.date.toDate === 'function'
+                ? eventData.date.toDate()
+                : eventData.date ? new Date(eventData.date) : null,
+            };
+          })
+        );
         setEvents(updatedEvents);
       }
     } catch (err) {
-      console.error('Error accepting booking:', err);
       toast.error('Failed to accept booking: ' + err.message);
     }
   };
@@ -170,47 +231,89 @@ const Bookings = () => {
         status: 'rejected',
       });
 
-      // Remove the DJ from the event's djsBooked array if they reject
       const eventRef = doc(firestore, 'events', eventId);
       const eventDoc = await getDoc(eventRef);
       if (eventDoc.exists()) {
         const eventData = eventDoc.data();
-        const updatedDjsBooked = (eventData.djsBooked || []).filter((id) => id !== djId);
+        const updatedPendingDjs = (eventData.pendingDjs || []).filter((id) => id !== djId);
         await updateDoc(eventRef, {
-          djsBooked: updatedDjsBooked,
+          pendingDjs: updatedPendingDjs,
         });
       }
 
       toast.success('Booking rejected.');
 
-      // Refresh bookings to reflect the updated status
       const bookingsQuery = query(
         collection(firestore, 'bookings'),
         where('djId', '==', currentUser.uid)
       );
       const bookingsSnapshot = await getDocs(bookingsQuery);
-      const updatedBookings = bookingsSnapshot.docs.map((bookingDoc) => ({
-        id: bookingDoc.id,
-        ...bookingDoc.data(),
-      }));
+      const updatedBookings = await Promise.all(
+        bookingsSnapshot.docs.map(async (bookingDoc) => {
+          try {
+            const eventRef = doc(firestore, 'events', bookingDoc.data().eventId);
+            const eventDoc = await getDoc(eventRef);
+            const eventData = eventDoc.exists() ? eventDoc.data() : {};
+            return {
+              id: bookingDoc.id,
+              ...bookingDoc.data(),
+              eventName: eventData.name || 'Untitled Event',
+              eventDate: eventData.date && typeof eventData.date.toDate === 'function'
+                ? eventData.date.toDate()
+                : eventData.date ? new Date(eventData.date) : null,
+            };
+          } catch (err) {
+            console.error('Error fetching event for booking', bookingDoc.id, ':', err);
+            return { id: bookingDoc.id, ...bookingDoc.data(), eventName: 'Untitled Event', eventDate: null };
+          }
+        })
+      );
       setDjBookings(updatedBookings);
 
-      // Refresh events in the organizer view if needed
       if (currentUser.role === 'organizer') {
         const eventsQuery = query(
           collection(firestore, 'events'),
           where('organizerId', '==', currentUser.uid)
         );
         const eventsSnapshot = await getDocs(eventsQuery);
-        const updatedEvents = eventsSnapshot.docs.map((eventDoc) => ({
-          id: eventDoc.id,
-          ...eventDoc.data(),
-        }));
+        const updatedEvents = await Promise.all(
+          eventsSnapshot.docs.map(async (eventDoc) => {
+            const eventData = eventDoc.data();
+            return {
+              id: eventDoc.id,
+              ...eventData,
+              date: eventData.date && typeof eventData.date.toDate === 'function'
+                ? eventData.date.toDate()
+                : eventData.date ? new Date(eventData.date) : null,
+            };
+          })
+        );
         setEvents(updatedEvents);
       }
     } catch (err) {
-      console.error('Error rejecting booking:', err);
       toast.error('Failed to reject booking: ' + err.message);
+    }
+  };
+
+  // Earnings summary for DJs
+  const calculateEarnings = async () => {
+    if (currentUser.role !== 'dj') return 0;
+    try {
+      const bookingsQuery = query(
+        collection(firestore, 'bookings'),
+        where('djId', '==', currentUser.uid),
+        where('status', '==', 'accepted')
+      );
+      const bookingsSnapshot = await getDocs(bookingsQuery);
+      const earnings = bookingsSnapshot.docs.reduce((sum, doc) => {
+        const price = doc.data().price || 0;
+        return sum + price;
+      }, 0);
+      return earnings;
+    } catch (err) {
+      console.error('Earnings calculation error:', err);
+      toast.error('Failed to calculate earnings: ' + err.message);
+      return 0;
     }
   };
 
@@ -225,11 +328,11 @@ const Bookings = () => {
           {djBookings.length > 0 ? (
             djBookings.map((booking) => (
               <div key={booking.id} className="booking-card">
-                <h3>{booking.eventName || 'Untitled Event'}</h3>
+                <h3>{booking.eventName}</h3>
                 <p>
                   Date:{' '}
-                  {booking.date?.seconds
-                    ? new Date(booking.date.seconds * 1000).toLocaleDateString()
+                  {booking.eventDate
+                    ? booking.eventDate.toLocaleDateString()
                     : 'Date unavailable'}
                 </p>
                 <p>Status: {booking.status || 'Pending'}</p>
@@ -254,6 +357,9 @@ const Bookings = () => {
           ) : (
             <p>No booking requests.</p>
           )}
+          <div className="earnings-summary">
+            <h3>Earnings from Accepted Bookings: R{calculateEarnings()}</h3>
+          </div>
         </div>
       )}
 
@@ -266,11 +372,12 @@ const Bookings = () => {
                 <h3>{event.name || 'Untitled Event'}</h3>
                 <p>
                   Date:{' '}
-                  {event.date?.seconds
-                    ? new Date(event.date.seconds * 1000).toLocaleDateString()
+                  {event.date
+                    ? event.date.toLocaleDateString()
                     : 'Date unavailable'}
                 </p>
                 <p>DJs Booked: {event.djsBooked?.length || 0}</p>
+                <p>Pending DJs: {event.pendingDjs?.length || 0}</p>
               </div>
             ))
           ) : (

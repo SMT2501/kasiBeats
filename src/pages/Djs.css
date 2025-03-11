@@ -1,7 +1,7 @@
 .djs-container {
   padding: 40px 20px;
-  background: #1a1a1a; /* Dark background */
-  color: #ffffff; /* White text */
+  background: #1a1a1a;
+  color: #ffffff;
   min-height: 100vh;
 }
 
@@ -9,7 +9,6 @@
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 40px;
-  /* Neon gradient already applied globally */
 }
 
 /* Search Container */
@@ -22,23 +21,23 @@
 /* Search Bar Styles */
 .search-bar {
   width: 100%;
-  padding: 10px 40px 10px 40px; /* Add padding for icons */
-  border: 2px solid #00f7ff; /* Neon cyan border */
+  padding: 10px 40px 10px 40px;
+  border: 2px solid #00f7ff;
   border-radius: 20px;
-  background: #333; /* Dark input background */
-  color: #ffffff; /* White text */
+  background: #333;
+  color: #ffffff;
   font-size: 1rem;
   outline: none;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .search-bar:focus {
-  border-color: #ff00ff; /* Neon magenta on focus */
+  border-color: #ff00ff;
   box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
 }
 
 .search-bar::placeholder {
-  color: #888; /* Light gray placeholder text */
+  color: #888;
 }
 
 .search-icon {
@@ -47,7 +46,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 1.2rem;
-  color: #00f7ff; /* Neon cyan icon */
+  color: #00f7ff;
 }
 
 .clear-search-btn {
@@ -56,8 +55,8 @@
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
-  border: 1px solid #ff00ff; /* Neon magenta border */
-  color: #ff00ff; /* Neon magenta text */
+  border: 1px solid #ff00ff;
+  color: #ff00ff;
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -70,22 +69,45 @@
   box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
 }
 
-.dj-list {
+.sort-container {
+  max-width: 400px;
+  margin: 0 auto 24px auto;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-container label {
+  color: #00f7ff;
+  font-size: 1.1rem;
+}
+
+.sort-container select {
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333;
+  color: #fff;
+  font-size: 1rem;
+}
+
+/* DJ Grid */
+.dj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
-  justify-content: center;
+  justify-items: center;
 }
 
 .dj-card {
-  border: 1px solid #444; /* Darker border */
+  border: 1px solid #444;
   border-radius: 8px;
   padding: 16px;
   text-align: center;
-  width: 200px;
+  width: 100%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background: #2a2a2a; /* Slightly lighter dark for cards */
-  color: #ffffff; /* White text */
+  background: #2a2a2a;
+  color: #ffffff;
   transition: transform 0.3s ease;
 }
 
@@ -98,17 +120,17 @@
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 12px; /* Add margin to prevent overlap */
+  margin-bottom: 12px;
 }
 
 .dj-card h3 {
   margin: 8px 0;
   font-size: 1.2rem;
-  color: #00f7ff; /* Neon cyan for headings */
+  color: #00f7ff;
 }
 
 .dj-card p {
-  color: #ddd; /* Light gray text */
+  color: #ddd;
   font-size: 0.9rem;
 }
 
@@ -147,7 +169,7 @@
   border-radius: 12px;
   padding: 24px;
   width: 90%;
-  max-width: 600px;
+  max-width: 700px; /* Increased for booking form */
   max-height: 80vh;
   overflow-y: auto;
   color: #ffffff;
@@ -232,6 +254,62 @@
   font-size: 1rem;
   color: #ddd;
   margin: 4px 0;
+}
+
+/* Booking Form */
+.dj-booking-form {
+  margin-top: 24px;
+}
+
+.dj-booking-form h4 {
+  font-size: 1.4rem;
+  color: #00f7ff;
+  margin-bottom: 12px;
+}
+
+.dj-booking-form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.dj-details {
+  background: #333;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.dj-details p {
+  margin: 5px 0;
+  color: #ddd;
+}
+
+.dj-details label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #fff;
+}
+
+.btn {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
 }
 
 /* Recent Posts Section */

@@ -2,19 +2,7 @@ import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { firestore } from '../firebaseConfig';
 import { AuthContext } from '../context/AuthContext';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  addDoc,
-} from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import './Profile.css';
 import defaultProfilePicture from '../assets/images/profile.jpg';
@@ -33,11 +21,7 @@ const Profile = () => {
   const [bio, setBio] = useState('');
   const [dataLoaded, setDataLoaded] = useState(false);
   const [earnings, setEarnings] = useState(0);
-  const [selectedBooking, setSelectedBooking] = useState(null); // For booking modal
-  const [selectedPost, setSelectedPost] = useState(null); // For post actions
-  const [editPostMode, setEditPostMode] = useState(false); // Edit post state
-  const [editedPostContent, setEditedPostContent] = useState(''); // Edited post content
-  const [selectedEvent, setSelectedEvent] = useState(null); // For event modal
+  const [selectedEvent, setSelectedEvent] = useState(null); // For modal
   const [eventTicketsSold, setEventTicketsSold] = useState(0); // Tickets sold
   const [eventDjs, setEventDjs] = useState([]); // Booked DJs
   const [editEventMode, setEditEventMode] = useState(false); // Edit event state
@@ -121,12 +105,9 @@ const Profile = () => {
                   const booking = { id: bookingDoc.id, ...bookingDoc.data() };
                   const eventRef = doc(firestore, 'events', booking.eventId);
                   const eventDoc = await getDoc(eventRef);
-                  const organizerRef = doc(firestore, 'users', eventDoc.exists() ? eventDoc.data().organizerId : 'unknown');
-                  const organizerDoc = await getDoc(organizerRef);
                   return {
                     ...booking,
                     eventDetails: eventDoc.exists() ? eventDoc.data() : {},
-                    organizer: organizerDoc.exists() ? organizerDoc.data() : { username: 'Unknown Organizer' },
                   };
                 })
               );
@@ -170,109 +151,6 @@ const Profile = () => {
     };
   }, [authLoading, userId, fetchEarnings]);
 
-  // Booking Modal Functions
-  const openBookingModal = (booking) => {
-    setSelectedBooking(booking);
-  };
-
-  const closeBookingModal = () => {
-    setSelectedBooking(null);
-  };
-
-  const handleBookingStatus = async (status) => {
-    if (!currentUser || currentUser.uid !== selectedBooking.djId) {
-      toast.error('Only the booked DJ can update this status.');
-      return;
-    }
-
-    try {
-      const bookingRef = doc(firestore, 'bookings', selectedBooking.id);
-      await updateDoc(bookingRef, { status });
-      setBookings((prev) =>
-        prev.map((b) => (b.id === selectedBooking.id ? { ...b, status } : b))
-      );
-      setSelectedBooking((prev) => ({ ...prev, status }));
-
-      // Notify organizer
-      await addDoc(collection(firestore, 'notifications'), {
-        userId: selectedBooking.eventDetails.organizerId,
-        message: `DJ ${profile.username} has ${status} your booking for "${selectedBooking.eventDetails.name}".`,
-        createdAt: new Date(),
-        read: false,
-      });
-
-      toast.success(`Booking ${status} successfully!`);
-    } catch (err) {
-      console.error('Error updating booking status:', err);
-      toast.error('Failed to update booking status: ' + (err?.message || 'Unknown error'));
-    }
-  };
-
-  const viewOnMap = () => {
-    const location = encodeURIComponent(selectedBooking.eventDetails.location || '');
-    window.open(`https://www.google.com/maps/search/?api=1&query=${location}`, '_blank');
-  };
-
-  // Post Functions
-  const openPostActions = (post) => {
-    setSelectedPost(post);
-    setEditedPostContent(post.content || '');
-  };
-
-  const closePostActions = () => {
-    setSelectedPost(null);
-    setEditPostMode(false);
-  };
-
-  const handleEditPost = async () => {
-    if (!currentUser || currentUser.uid !== selectedPost.userId) {
-      toast.error('Only the post creator can edit this post.');
-      return;
-    }
-
-    try {
-      const postRef = doc(firestore, 'posts', selectedPost.id);
-      await updateDoc(postRef, { content: editedPostContent });
-      setPosts((prev) =>
-        prev.map((p) => (p.id === selectedPost.id ? { ...p, content: editedPostContent } : p))
-      );
-      setSelectedPost((prev) => ({ ...prev, content: editedPostContent }));
-      setEditPostMode(false);
-      toast.success('Post updated successfully!');
-    } catch (err) {
-      console.error('Error editing post:', err);
-      toast.error('Failed to edit post: ' + (err?.message || 'Unknown error'));
-    }
-  };
-
-  const handleDeletePost = async () => {
-    if (!currentUser || currentUser.uid !== selectedPost.userId) {
-      toast.error('Only the post creator can delete this post.');
-      return;
-    }
-
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        const postRef = doc(firestore, 'posts', selectedPost.id);
-        await deleteDoc(postRef);
-        setPosts((prev) => prev.filter((p) => p.id !== selectedPost.id));
-        closePostActions();
-        toast.success('Post deleted successfully!');
-      } catch (err) {
-        console.error('Error deleting post:', err);
-        toast.error('Failed to delete post: ' + (err?.message || 'Unknown error'));
-      }
-    }
-  };
-
-  const handleSharePost = () => {
-    const postUrl = `${window.location.origin}/post/${selectedPost.id}`;
-    navigator.clipboard.writeText(postUrl)
-      .then(() => toast.success('Post URL copied to clipboard!'))
-      .catch(() => toast.error('Failed to copy post URL.'));
-  };
-
-  // Event Modal Functions
   const openEventModal = async (event) => {
     setSelectedEvent(event);
     setEditedEvent({ ...event }); // Initialize editable event data
@@ -327,7 +205,7 @@ const Profile = () => {
     try {
       const eventRef = doc(firestore, 'events', selectedEvent.id);
       await updateDoc(eventRef, editedEvent);
-
+      
       // Update events state
       setEvents((prev) =>
         prev.map((e) => (e.id === selectedEvent.id ? { ...e, ...editedEvent } : e))
@@ -433,20 +311,11 @@ const Profile = () => {
       const userRef = doc(firestore, 'users', currentUser.uid);
       await setDoc(
         userRef,
-        {
-          bio,
-          price: profile.role === 'dj' ? price : undefined,
-          conditions: profile.role === 'dj' ? conditions : undefined,
-        },
+        { bio, price: profile.role === 'dj' ? price : undefined, conditions: profile.role === 'dj' ? conditions : undefined },
         { merge: true }
       );
       setEditMode(false);
       toast.success('Profile updated successfully on KasiBeats!');
-      // Refresh profile data after save
-      const profileDoc = await getDoc(userRef);
-      if (profileDoc.exists()) {
-        setProfile(profileDoc.data());
-      }
     } catch (error) {
       toast.error('Failed to update profile: ' + (error?.message || 'Unknown error'));
     }
@@ -480,20 +349,10 @@ const Profile = () => {
   return (
     <div className="profile">
       <div className="profile-header">
-        <img
-          src={profile.profilePicture || defaultProfilePicture}
-          alt="Profile"
-          className="profile-picture"
-        />
+        <img src={profile.profilePicture || defaultProfilePicture} alt="Profile" className="profile-picture" />
         <h2>{profile.username || 'No username set'}</h2>
         <p>Bio: {profile.bio || 'No bio available'}</p>
         <p>Role: {profile.role}</p>
-        {profile.role === 'dj' && (
-          <>
-            <p>Rate: R{price}</p>
-            <p>Conditions: {conditions || 'Not specified'}</p>
-          </>
-        )}
         {isOwnProfile && (
           <>
             <button className="btn" onClick={handleEditProfile}>
@@ -512,20 +371,11 @@ const Profile = () => {
         {editMode && isOwnProfile && (
           <div className="edit-fields">
             <label>Bio:</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows="4"
-            />
+            <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows="4" />
             {profile.role === 'dj' && (
               <>
                 <label>Rate (R):</label>
-                <input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(Number(e.target.value))}
-                  min="0"
-                />
+                <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} min="0" />
                 <label>Conditions:</label>
                 <input
                   type="text"
@@ -554,7 +404,7 @@ const Profile = () => {
             <div className="grid-container">
               {bookings.length > 0 ? (
                 bookings.map((booking) => (
-                  <div key={booking.id} className="booking-card" onClick={() => openBookingModal(booking)}>
+                  <div key={booking.id} className="booking-card">
                     <h4>{booking.eventName || 'Unnamed Event'}</h4>
                     <p>
                       Date:{' '}
@@ -584,7 +434,7 @@ const Profile = () => {
             <div className="grid-container">
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <div key={post.id} className="post-card" onClick={() => openPostActions(post)}>
+                  <div key={post.id} className="post-card">
                     <h4>{post.title || 'No Title'}</h4>
                     <p>{post.content || 'No content'}</p>
                     {post.createdAt && (
@@ -610,7 +460,7 @@ const Profile = () => {
       {profile.role === 'organizer' && (
         <div className="organizer-events">
           <div className="events-header">
-            <h3>Events on KasiBeats</h3>
+            <h3>Your Events on KasiBeats</h3>
             {isOwnProfile && (
               <button className="fab" onClick={handleCreateEvent}>
                 +
@@ -646,81 +496,6 @@ const Profile = () => {
         </div>
       )}
 
-      {selectedBooking && (
-        <div className="booking-modal-overlay">
-          <div className="booking-modal-content">
-            <button className="close-modal-btn" onClick={closeBookingModal}>✖</button>
-            <h2>{selectedBooking.eventName || 'Unnamed Event'}</h2>
-            <p>
-              Date:{' '}
-              {selectedBooking.date?.seconds
-                ? new Date(selectedBooking.date.seconds * 1000).toLocaleDateString()
-                : 'Date unavailable'}
-            </p>
-            <p>Location: {selectedBooking.eventDetails?.location || 'N/A'}</p>
-            <p>Status: {selectedBooking.status || 'Pending'}</p>
-            <p>Organizer: {selectedBooking.organizer?.username || 'Unknown'}</p> {/* Updated line */}
-            <p>Rate: R{profile.price || 0}</p>
-            <p>Conditions: {profile.conditions || 'Not specified'}</p>
-            <div className="booking-actions">
-              <button className="btn map-btn" onClick={viewOnMap}>View on Map</button>
-              {isOwnProfile && selectedBooking.status === 'pending' && (
-                <>
-                  <button className="btn accept-btn" onClick={() => handleBookingStatus('accepted')}>
-                    Accept
-                  </button>
-                  <button className="btn reject-btn" onClick={() => handleBookingStatus('rejected')}>
-                    Reject
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {selectedPost && (
-        <div className="post-modal-overlay">
-          <div className="post-modal-content">
-            <button className="close-modal-btn" onClick={closePostActions}>✖</button>
-            {editPostMode ? (
-              <div className="edit-post-form">
-                <h2>Edit Post</h2>
-                <label>Caption:</label>
-                <textarea
-                  value={editedPostContent}
-                  onChange={(e) => setEditedPostContent(e.target.value)}
-                  rows="4"
-                />
-                <button className="btn" onClick={handleEditPost}>Save Changes</button>
-              </div>
-            ) : (
-              <>
-                <h2>{selectedPost.title || 'No Title'}</h2>
-                <p>{selectedPost.content || 'No content'}</p>
-                {selectedPost.createdAt && (
-                  <p>Posted on: {new Date(selectedPost.createdAt.seconds * 1000).toLocaleString()}</p>
-                )}
-                {selectedPost.mediaUrl && (
-                  selectedPost.mediaType?.startsWith('image/') ? (
-                    <img src={selectedPost.mediaUrl} alt="Post Media" className="post-media-large" />
-                  ) : (
-                    <video src={selectedPost.mediaUrl} controls className="post-media-large" />
-                  )
-                )}
-                {isOwnProfile && (
-                  <div className="post-actions">
-                    <button className="btn" onClick={() => setEditPostMode(true)}>Edit Caption</button>
-                    <button className="btn delete-btn" onClick={handleDeletePost}>Delete Post</button>
-                    <button className="btn share-btn" onClick={handleSharePost}>Share Post</button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {selectedEvent && (
         <div className="event-modal-overlay">
           <div className="event-modal-content">
@@ -742,12 +517,7 @@ const Profile = () => {
                       ? new Date(editedEvent.date.seconds * 1000).toISOString().split('T')[0]
                       : ''
                   }
-                  onChange={(e) =>
-                    setEditedEvent({
-                      ...editedEvent,
-                      date: { seconds: Math.floor(new Date(e.target.value).getTime() / 1000) },
-                    })
-                  }
+                  onChange={(e) => setEditedEvent({ ...editedEvent, date: { seconds: Math.floor(new Date(e.target.value).getTime() / 1000) } })}
                 />
                 <label>Location:</label>
                 <input

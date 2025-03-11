@@ -1,8 +1,7 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { auth, firestore } from '../firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { toast } from 'react-toastify';
 
 export const AuthContext = createContext();
 
@@ -12,45 +11,38 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed, user:', user); // Debug
       if (user) {
+        const userRef = doc(firestore, 'users', user.uid);
         try {
-          const userRef = doc(firestore, 'users', user.uid);
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
-            setCurrentUser({ ...user, role: userDoc.data().role, username: userDoc.data().username });
+            const userData = userDoc.data();
+            const updatedUser = { ...user, role: userData.role, profilePicture: userData.profilePicture }; // Merge role and profilePicture
+            setCurrentUser(updatedUser);
+            console.log('AuthContext - Set currentUser with role:', updatedUser.role, 'profilePicture:', updatedUser.profilePicture); // Debug
           } else {
-            setCurrentUser(user); // Fallback to basic user data if no Firestore doc
+            setCurrentUser(user); // Fallback without role or profilePicture
+            console.log('AuthContext - No role or profile data found for user:', user.uid); // Debug
           }
         } catch (error) {
-          toast.error('Failed to fetch user data: ' + error.message);
-          setCurrentUser(user); // Proceed with basic user data despite error
+          console.error('AuthContext - Error fetching user data:', error); // Debug
+          setCurrentUser(user); // Fallback with error
         }
       } else {
         setCurrentUser(null);
+        console.log('AuthContext - No user logged in'); // Debug
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const signOut = async () => {
-    try {
-      await auth.signOut();
-      setCurrentUser(null);
-    } catch (error) {
-      toast.error('Failed to sign out: ' + error.message);
-    }
-  };
-
-  const value = {
-    currentUser,
-    loading,
-    signOut,
-  };
+  const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ currentUser, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

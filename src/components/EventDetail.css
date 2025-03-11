@@ -1,42 +1,123 @@
 .event-detail {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 24px;
-    text-align: center;
-  }
-  
-  .event-detail-picture {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 16px;
-  }
-  
-  .event-detail h2 {
-    font-size: 1.8rem;
-    margin-bottom: 16px;
-  }
-  
-  .event-detail p {
-    font-size: 1rem;
-    color: #333;
-    margin: 8px 0;
-  }
-  
-  .payment-status {
-    padding: 12px;
-    margin-bottom: 16px;
-    border-radius: 4px;
-    font-weight: bold;
-  }
-  
-  .payment-status[style*="success"] {
-    background-color: #d4edda;
-    color: #155724;
-  }
-  
-  .payment-status[style*="cancelled"] {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
+  padding: 40px 20px;
+  background: #1a1a1a;
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+.event-detail h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 20px;
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.event-detail p {
+  font-size: 1.1rem;
+  margin: 10px 0;
+}
+
+.event-detail p strong {
+  color: #00f7ff;
+}
+
+.event-detail h3 {
+  font-size: 1.5rem;
+  color: #ff00ff;
+  margin-top: 20px;
+}
+
+.event-detail ul {
+  list-style: none;
+  padding: 0;
+}
+
+.event-detail li {
+  margin: 10px 0;
+  font-size: 1rem;
+}
+
+.media-preview {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.event-media {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.edit-form label {
+  font-size: 1.1rem;
+  color: #00f7ff;
+}
+
+.edit-form input,
+.edit-form textarea {
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.edit-form input[type="checkbox"] {
+  margin-left: 10px;
+  transform: scale(1.2);
+}
+
+.btn {
+  background: linear-gradient(45deg, #00f7ff, #ff00ff);
+  color: #000000;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  margin: 5px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+}
+
+.edit-btn {
+  background: linear-gradient(45deg, #00ff00, #00f7ff);
+}
+
+.save-btn {
+  background: linear-gradient(45deg, #00ff00, #00f7ff);
+}
+
+.cancel-btn {
+  background: linear-gradient(45deg, #ff5555, #ff00ff);
+}
+
+.delete-btn {
+  background: linear-gradient(45deg, #ff0000, #ff5555);
+}
+
+.delete-media-btn {
+  background: linear-gradient(45deg, #ff5555, #ff00ff);
+}
+
+.approve-btn {
+  background: linear-gradient(45deg, #00ff00, #00f7ff);
+}
+
+.reject-btn {
+  background: linear-gradient(45deg, #ff5555, #ff00ff);
+}

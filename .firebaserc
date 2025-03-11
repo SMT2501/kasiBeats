@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "ghost-nation-8192f"
-  }
+    "default": "ghost-nation-8192f",
+    "cors": "ghost-nation-8192f"
+  },
+  "targets": {},
+  "etags": {}
 }
